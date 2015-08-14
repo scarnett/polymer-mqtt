@@ -1,0 +1,22 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Polymer-MQTT-Client</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
+    <script src="resources/bower/components/webcomponentsjs/webcomponents-lite.min.js"></script>
+    <script src="resources/bower/components/expandjs/dist/expandjs.js"></script>
+    <script src="resources/bower/components/moment/moment.js"></script>
+
+    <link rel="import" href="resources/bower/components/polymer/polymer.html" />
+    <link rel="import" href="resources/elements/mqtt/mqtt_client.html" />
+  </head>
+
+  <body fullbleed>
+    <template id="mqtt_scope" is="dom-bind">
+      <mqtt-client></mqtt-client>
+    </template>
+</html>

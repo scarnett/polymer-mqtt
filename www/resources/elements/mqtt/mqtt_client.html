@@ -1,0 +1,1721 @@
+<dom-module name="mqtt-client">
+  <link rel="import" href="../../bower/components/iron-localstorage/iron-localstorage.html" />
+
+  <link rel="import" href="../../bower/components/paper-menu/paper-menu.html" />
+  <link rel="import" href="../../bower/components/paper-item/paper-item.html" />
+  <link rel="import" href="../../bower/components/paper-toast/paper-toast.html" />
+
+  <link rel="import" href="../../bower/components/mat-button/mat-button.html" />
+  <link rel="import" href="../../bower/components/mat-content/mat-content.html" />
+  <link rel="import" href="../../bower/components/mat-dialog/mat-dialog.html" />
+  <link rel="import" href="../../bower/components/mat-drawer/mat-drawer.html" />
+  <link rel="import" href="../../bower/components/mat-fab/mat-fab.html" />
+  <link rel="import" href="../../bower/components/mat-text-field/mat-text-field.html" />
+  <link rel="import" href="../../bower/components/mat-dropdown/mat-dropdown.html" />
+  <link rel="import" href="../../bower/components/mat-checkbox/mat-checkbox.html" />
+  <link rel="import" href="../../bower/components/mat-header-panel/mat-header-panel.html" />
+  <link rel="import" href="../../bower/components/mat-header-panel/mat-header.html" />
+  <link rel="import" href="../../bower/components/mat-icon-button/mat-icon-button.html" />
+  <link rel="import" href="../../bower/components/mat-icons/mat-icons.html" />
+  <link rel="import" href="../../bower/components/mat-item/mat-item.html" />
+  <link rel="import" href="../../bower/components/mat-label/mat-label.html" />
+  <link rel="import" href="../../bower/components/mat-list/mat-list.html" />
+  <link rel="import" href="../../bower/components/mat-menu/mat-menu.html" />
+  <link rel="import" href="../../bower/components/mat-option/mat-option.html" />
+  <link rel="import" href="../../bower/components/mat-pages/mat-page.html" />
+  <link rel="import" href="../../bower/components/mat-pages/mat-pages.html" />
+  <link rel="import" href="../../bower/components/mat-raised-button/mat-raised-button.html" />
+  <link rel="import" href="../../bower/components/mat-shell/mat-shell.html" />
+  <link rel="import" href="../../bower/components/mat-spinner/mat-spinner.html" />
+  <link rel="import" href="../../bower/components/mat-tabs/mat-tab.html" />
+  <link rel="import" href="../../bower/components/mat-tabs/mat-tabs.html" />
+
+  <style>
+    :host {
+      @apply(--layout-fit);
+
+      cursor: default;
+      display: block;
+      overflow: hidden;
+      min-height: 350px;
+    }
+
+    :host([selected]:not([narrow])) #mqtt_shell::shadow #matShellMain {
+      max-width: 512px;
+    }
+
+    :host #mqtt_header_message {
+      @apply(--layout-horizontal);
+      @apply(--layout-center);
+      @apply(--layout-fit);
+
+      transition: opacity 0.4s cubic-bezier(0.55, 0, 0.01, 1);
+    }
+
+    :host #mqtt_header_wrapper {
+      @apply(--layout-flex);
+
+      position: relative;
+    }
+
+    :host #mqtt_details [extended] {
+      margin-bottom: 16px;
+    }
+
+    :host(:not([narrow])) #mqtt_details {
+      @apply(--layout-flex);
+    }
+
+    :host #mqtt_details_tabs {
+      margin-bottom: 0 !important;
+    }
+
+    :host #mqtt_details_info {
+      @apply(--layout-horizontal);
+      @apply(--layout-flex);
+    }
+
+    :host #mqtt_details_title {
+      line-height: 46px;
+      overflow: hidden;
+      text-overflow: ellipsis !important;
+      white-space: nowrap !important;
+    }
+
+    :host #mqtt_details_closer {
+       margin-left: -12px;
+    }
+
+    :host /deep/ #mqtt_detail_pages mat-page.form xp-page {
+      background-color: #ffffff !important;
+      padding: 16px;
+    }
+
+    :host /deep/ #mqtt_pages mat-content {
+      padding: 0;
+    }
+
+    :host /deep/ #matHeaderPanelBody {
+      background: hsla(255, 100%, 100%, 1);
+    }
+
+    :host /deep/ #matHeaderPanelFooter {
+      border-top: 1px solid #eeeeee;
+    }
+
+    :host #mqtt_topic {
+      @apply(--layout-horizontal);
+      @apply(--layout-center);
+    }
+
+    :host #mqtt_topic_input {
+      @apply(--layout-flex);
+
+      display: block;
+      width: auto;
+    }
+
+    :host /deep/ mat-text-field {
+      padding: 0 !important;
+    }
+
+    :host /deep/ .alert {
+      font-weight: bold;
+      height: 40px;
+      padding: 16px;
+      margin: 0 16px;
+      text-align: center;
+    }
+
+    :host /deep/ .alert > span {
+      margin-left: 16px;
+    }
+
+    :host /deep/ .alert mat-spinner {
+      display: inline-block;
+      vertical-align: bottom;
+    }
+
+    :host /deep/ xp-dialog {
+      @apply(--layout-flex);
+      @apply(--layout-center);
+
+      left: 0;
+      right: 0;
+    }
+
+    :host /deep/ #mqtt_messages mat-fab {
+      position: fixed !important;
+    }
+
+    :host /deep/ mat-header-panel {
+      @apply(--layout-fit);
+      @apply(--layout-flex);
+    }
+
+    :host /deep/ mat-header mat-fab {
+      z-index: 10;
+    }
+
+    :host /deep/ mat-label.pad {
+      padding-top: 20px;
+    }
+
+    :host /deep/ paper-toast {
+        z-index: 10000;
+    }
+
+    :host /deep/ paper-toast span.retry {
+      color: #eeff41;
+      margin: 10px
+    }
+
+    :host /deep/ paper-toast span.retry:not([showed]) {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s cubic-bezier(0.55, 0, 0.01, 1);
+    }
+
+    :host /deep/ mat-header-panel > mat-paper {
+      background-color: transparent !important;
+    }
+  </style>
+
+  <template>
+    <iron-localstorage id="mqtt_connection_storage" name="mqtt_connections" value="{{connections}}"></iron-localstorage>
+    <iron-localstorage id="mqtt_topic_storage" name="mqtt_topics" value="{{topics}}"></iron-localstorage>
+    <iron-localstorage id="mqtt_settings_storage" name="mqtt_settings" value="{{settings}}" on-iron-localstorage-load-empty="_handleDefaultSettings"></iron-localstorage>
+
+    <mat-shell id="mqtt_shell">
+      <mat-header-panel id="mqtt_main" mode="fixed" raised>
+        <mat-header id="mqtt_header" background="red-700">
+          <div id="mqtt_header_wrapper">
+            <div id="mqtt_header_title" showed$="[[!isViewingMessages]]">Polymer MQTT</div>
+          </div>
+
+          <mat-icon-button icon="navigation:more-vert" on-xp-activate="_handleOptionMenu"></mat-icon-button>
+          <mat-menu id="mqtt_option_menu">
+            <mat-option label="About"></mat-option>
+          </mat-menu>
+
+          <mat-tabs id="mqtt_header_tabs" on-xp-select="_headerTabsListener" target="mqtt_pages">
+            <mat-tab label="[[_computeConnectionsTabLabel(connections)]]"></mat-tab>
+            <mat-tab label="[[messagesTabLabel]]" disabled$="[[!isActiveConnection]]"></mat-tab>
+          </mat-tabs>
+        </mat-header>
+
+        <mat-pages id="mqtt_pages">
+          <mat-page id="mqtt_connections">
+            <mat-header-panel background="grey-200" mode="waterfall">
+              <mat-content>
+                <mat-list id="connection_list" on-xp-activate="_handleActivateConnection">
+                  <template is="dom-repeat" items="[[connections]]" as="connection">
+                    <mat-item
+                      active="[[_isCurrentConnection(connection, currentConnection)]]"
+                      data="[[connection.id]]"
+                      label="[[_computeConnectionName(connection)]]"
+                      description="[[_computeConnectionHost(connection)]]"
+                      secondary-active="[[_isActiveConnection(connection, activeConnection)]]"
+                      secondary-active-color="green-500"
+                      secondary-icon="action:check-circle"></mat-item>
+                  </template>
+                </mat-list>
+
+                <div class="alert" hidden$="[[hasConnections]]">
+                  <span>No connections found</span>
+                </div>
+              </mat-content>
+
+              <mat-toolbar class="page_footer" background="grey-50" footer>
+                <mat-icon-button icon="action:settings" on-xp-activate="_handleSettingsForm" disabled></mat-icon-button>
+              </mat-toolbar>
+            </mat-header-panel>
+
+            <mat-fab background="blue-600" icon="content:add" on-xp-activate="_handleCreateConnection"></mat-fab>
+          </mat-page>
+
+          <mat-page id="mqtt_messages">
+            <mat-header-panel background="grey-200" mode="waterfall">
+              <mat-content>
+                <mat-list id="message_list">
+                  <template is="dom-repeat" items="[[messages]]" as="message">
+                    <mat-item
+                      data="[[message]]"
+                      label="[[message.message]]"
+                      description="[[_computeMessageTimestamp(message)]]"
+                      primary-icon="communication:forum"
+                      primary-color="[[_computeTopicColor(message)]]"></mat-item>
+                  </template>
+                </mat-list>
+
+                <div class="alert" hidden$="[[hasMessages]]">
+                  <mat-spinner showed></mat-spinner>
+                  <span>Waiting for incoming messages</span>
+                </div>
+              </mat-content>
+
+              <mat-toolbar class="page_footer" background="grey-50" footer>
+                <mat-icon-button icon="action:check-circle" color="green-500" data="[[activeConnection.id]]" on-xp-activate="_handleConnection"></mat-icon-button>
+                <mat-icon-button icon="navigation:refresh" data="[[activeConnection.id]]" on-xp-activate="_handleClearMessages"></mat-icon-button>
+              </mat-toolbar>
+            </mat-header-panel>
+
+            <mat-fab background="blue-600" icon="content:add" on-xp-activate="_handleMessageForm"></mat-fab>
+          </mat-page>
+        </mat-pages>
+      </mat-header-panel>
+
+      <mat-drawer id="mqtt_details" break-point="1024" narrow="{{narrow}}" showed$="[[selected]]" right>
+        <mat-header-panel background="grey-200" mode="waterfall">
+          <mat-header id="mqtt_details_header" background="red-600">
+            <div id="mqtt_details_info">
+              <mat-icon-button id="mqtt_details_closer" icon="navigation:chevron-left" on-xp-activate="_handleClose"></mat-icon-button>
+              <div id="mqtt_details_title">{{_computeConnectionName(currentConnection)}}</div>
+            </div>
+
+            <mat-tabs id="mqtt_details_tabs" target="mqtt_detail_pages">
+              <mat-tab label="settings"></mat-tab>
+              <mat-tab label="topics"></mat-tab>
+            </mat-tabs>
+          </mat-header>
+
+          <mat-content id="mqtt_detail_wrapper">
+            <mat-pages id="mqtt_detail_pages">
+              <mat-page id="mqtt_connection_form" class="form">
+                <mat-header-panel mode="waterfall">
+                  <mat-content>
+                    <template is="dom-if" if="[[selected]]" restamp>
+                      <mat-text-field id="mqtt_connection_name" label="Name" value="{{currentConnection.name::input}}" floating-label></mat-text-field>
+                      <mat-text-field id="mqtt_connection_host" label="Host" value="{{currentConnection.host}}" floating-label></mat-text-field>
+                      <mat-text-field id="mqtt_connection_port" label="Port" type="number" value="{{currentConnection.port}}" floating-label></mat-text-field>
+                      <mat-text-field id="mqtt_connection_client_id" label="Client ID" value="{{currentConnection.clientId}}" floating-label></mat-text-field>
+                      <mat-text-field id="mqtt_connection_username" label="Username" value="{{currentConnection.username}}" floating-label></mat-text-field>
+                      <mat-text-field id="mqtt_connection_password" label="Password" type="password" value="{{currentConnection.password}}" floating-label></mat-text-field>
+                      <mat-text-field id="mqtt_connection_timeout" label="Timeout" type="number" value="{{currentConnection.timeout}}" floating-label></mat-text-field>
+                      <mat-checkbox id="mqtt_connection_ssl" label="SSL" checked="{{currentConnection.ssl}}"></mat-checkbox>
+                      <mat-checkbox id="mqtt_connection_debug" label="Debug" checked="{{currentConnection.debug}}"></mat-checkbox>
+                    </template>
+                  </mat-content>
+
+                  <mat-toolbar class="page_footer" background="grey-50" footer>
+                    <mat-icon-button icon="action:delete" color="red" on-xp-activate="_handleDeleteConnectionConfirm" empty$="[[!updating]]"></mat-icon-button>
+                  </mat-toolbar>
+                </mat-header-panel>
+                <mat-fab background="green-500" icon="action:done" on-xp-activate="_handleSaveConnection"></mat-fab>
+              </mat-page>
+
+              <mat-page>
+                <mat-list on-xp-activate="_handleActivateTopic">
+                  <template id="topic_list" is="dom-repeat" items="[[currentTopics]]" as="topic">
+                    <mat-item
+                      data="[[topic.id]]"
+                      label="[[topic.name]]"
+                      primary-icon="communication:forum"
+                      primary-color="[[topic.color]]"
+                      secondary-icon="[[_computeTopicSubscriptionIcon(topic)]]"
+                      secondary-color="[[_computeTopicSubscriptionColor(topic)]]"></mat-item>
+                  </template>
+                </mat-list>
+
+                <div class="alert" hidden$="[[_hasTopics(topics, currentConnection)]]">
+                  <span>No topics found</span>
+                </div>
+
+                <mat-fab background="blue-600" icon="content:add" on-xp-activate="_handleTopicForm"></mat-fab>
+              </mat-page>
+
+              <mat-page class="form">
+                <mat-header-panel background="grey-200" mode="waterfall">
+                  <mat-content>
+                    <mat-text-field id="mqtt_topic_name" label="Name" value="{{currentTopic.name::input}}" floating-label></mat-text-field>
+
+                    <mat-dropdown id="mqtt_topic_color" label="Color" value="{{currentTopic.color}}" floating-label>
+                      <template id="topic_color_list" is="dom-repeat" items="[[topicColors]]" as="color">
+                        <mat-option value="[[color.id]]" label="[[color.name]]"></mat-option>
+                      </template>
+                    </mat-dropdown>
+
+                    <mat-checkbox id="mqtt_topic_auto_subscribe" label="Auto-Subscribe" checked="{{currentTopic.autoSubscribe}}"></mat-checkbox>
+                  </mat-content>
+
+                  <mat-toolbar class="page_footer" background="grey-50" footer>
+                    <mat-icon-button icon="action:delete" color="red" on-xp-activate="_handleDeleteTopicConfirm" empty$="[[!updatingTopic]]"></mat-icon-button>
+                  </mat-toolbar>
+                </mat-header-panel>
+
+                <mat-fab background="green-500" icon="action:done" on-xp-activate="_handleSaveTopic"></mat-fab>
+              </mat-page>
+            </mat-pages>
+          </mat-content>
+        </mat-header-panel>
+      </mat-drawer>
+    </mat-shell>
+
+    <paper-toast id="mqtt_toast">
+      <span class="retry" data="[[activeConnection.id]]" on-click="_handleConnectionRetry" showed$="[[retryConnection]]">Retry</span>
+    </paper-toast>
+
+    <mat-dialog id="delete_connection" label="{{currentConnection.name}}" auto-hide-disabled>
+      <div>Are you sure you want to delete this connection?</div>
+      <mat-button label="Cancel" action></mat-button>
+      <mat-raised-button label="Confirm" background="red-600" on-xp-activate="_handleDeleteConnection" action></mat-raised-button>
+    </mat-dialog>
+
+    <mat-dialog id="delete_topic" label="{{currentTopic.name}}" auto-hide-disabled>
+      <div>Are you sure you want to delete this topic?</div>
+      <mat-button label="Cancel" on-xp-activate="_handleTopicReset" action></mat-button>
+      <mat-raised-button label="Confirm" background="red-600" on-xp-activate="_handleDeleteTopic" action></mat-raised-button>
+    </mat-dialog>
+
+    <mat-dialog id="zero_topics" label="No Topics Found" auto-hide-disabled>
+      <div>Please enter some topics first</div>
+      <mat-raised-button label="OK" background="blue-600" action></mat-raised-button>
+    </mat-dialog>
+
+    <mat-dialog id="message_form" label="Settings" auto-hide-disabled>
+      <mat-text-field id="mqtt_header_message_input" label="Message" value="{{message}}" on-keypress="_handleMessageKeypress" floating-label></mat-text-field>
+
+      <mat-dropdown id="mqtt_header_message_topic" label="Topic" value="{{selectedTopic}}" floating-label>
+        <template id="mqtt_message_topic_list" is="dom-repeat" items="[[activeTopics]]" as="topic">
+          <mat-option value="[[topic.id]]" label="[[topic.name]]"></mat-option>
+        </template>
+      </mat-dropdown>
+
+      <mat-dropdown id="mqtt_header_message_qos" label="QOS" value="{{qos}}" floating-label>
+        <mat-option value="0" label="0"></mat-option>
+        <mat-option value="1" label="1"></mat-option>
+        <mat-option value="2" label="2"></mat-option>
+      </mat-dropdown>
+
+      <mat-button label="Cancel" action></mat-button>
+      <mat-raised-button label="Publish" background="blue-600" on-xp-activate="_handlePublishMessage" action></mat-raised-button>
+    </mat-dialog>
+
+    <!--
+    <mat-dialog id="settings_form" label="Settings" auto-hide-disabled>
+      <mat-label class="pad">Color</mat-label>
+      <paper-radio-group id="mqtt_theme_contrast" selected="{{settings.contrast}}">
+        <paper-radio-button name="light">Light</paper-radio-button>
+        <paper-radio-button name="dark">Dark</paper-radio-button>
+      </paper-radio-group>
+
+      <mat-button label="Cancel" action></mat-button>
+      <mat-raised-button label="Save" background="blue-600" on-xp-activate="_handleSaveSettings" action></mat-raised-button>
+    </mat-dialog>
+    //-->
+  </template>
+
+  <script src="../../js/mqtt/mqttws31.js"></script>
+  <script src="../../bower/components/time-elements/time-elements.js"></script>
+
+  <script>
+    Polymer({
+      is: 'mqtt-client',
+
+
+      properties: {
+        connections: {
+          notify: true,
+          type: Array,
+          value: function() {
+            return [];
+          }
+        },
+
+        currentConnection: {
+          notify: true,
+          readOnly: true,
+          type: Object,
+          value: null
+        },
+
+        activeConnection: {
+          notify: true,
+          readOnly: true,
+          type: Object,
+          value: null
+        },
+
+        retryConnection: {
+          notify: true,
+          reflectToAttribute: true,
+          type: Object,
+          value: null
+        },
+
+        invalidConnection: {
+          type: Boolean,
+          observer: '_observeConnectionName'
+        },
+
+        topics: {
+          notify: true,
+          type: Array,
+          value: function() {
+            return [];
+          }
+        },
+
+        currentTopic: {
+          notify: true,
+          readOnly: true,
+          type: Object,
+          value: null
+        },
+
+        currentTopics: {
+          computed: '_getTopics(topics, currentConnection)',
+          notify: true,
+          readOnly: true,
+          type: Object,
+          value: null
+        },
+
+        activeTopics: {
+          computed: '_getTopics(topics, activeConnection)',
+          notify: true,
+          readOnly: true,
+          type: Object,
+          value: null
+        },
+
+        selectedTopic: {
+          notify: true,
+          reflectToAttribute: true,
+          type: Object,
+          value: null
+        },
+
+        messages: {
+          notify: true,
+          type: Array,
+          value: function() {
+            return [];
+          }
+        },
+
+        message: {
+          notify: true,
+          reflectToAttribute: true,
+          type: Object,
+          value: null
+        },
+
+        qos: {
+          notify: true,
+          reflectToAttribute: true,
+          type: Number,
+          value: null
+        },
+
+        mqttClient: {
+          notify: true,
+          type: Object
+        },
+
+        selected: {
+          computed: '_isCurrentConnection(currentConnection, currentConnection)',
+          notify: true,
+          reflectToAttribute: true,
+          type: Boolean
+        },
+
+        narrow: {
+          notify: true,
+          reflectToAttribute: true,
+          type: Boolean
+        },
+
+        updating: {
+          computed: '_isUpdating(currentConnection)',
+          notify: true,
+          readOnly: true,
+          reflectToAttribute: true,
+          type: Boolean
+        },
+
+        updatingTopic: {
+          computed: '_isUpdatingTopic(currentTopic)',
+          notify: true,
+          readOnly: true,
+          reflectToAttribute: true,
+          type: Boolean
+        },
+
+        isActiveConnection: {
+          computed: '_isActive(activeConnection)',
+          notify: true,
+          reflectToAttribute: true,
+          type: Boolean
+        },
+
+        isViewingMessages: {
+          notify: true,
+          reflectToAttribute: true,
+          type: Boolean,
+          value: false
+        },
+
+        hasConnections: {
+          computed: '_hasConnections(connections)',
+          notify: true,
+          readOnly: true,
+          reflectToAttribute: true,
+          type: Boolean
+        },
+
+        hasTopics: {
+          computed: '_hasTopics(topics, activeConnection)',
+          notify: true,
+          readOnly: true,
+          reflectToAttribute: true,
+          type: Boolean
+        },
+
+        hasMessages: {
+          notify: true,
+          readOnly: true,
+          type: Boolean,
+          value: false
+        },
+
+        callbacks: {
+          notify: true,
+          type: Array,
+          value: function() {
+            return [];
+          }
+        },
+
+        topicColors: {
+          computed: '_computeTopicColors(currentTopic)',
+          notify: true,
+          readOnly: true,
+          type: Array
+        },
+
+        settings: {
+          notify: true,
+          type: Object
+        },
+
+        messagesTabLabel: {
+          computed: '_computeMessagesTabLabel(messages)',
+          notify: true,
+          type: Object
+        }
+      },
+
+
+      // Configures and sets the default settings if they don't exist yet
+      _handleDefaultSettings: function() {
+        var self = this;
+        var settingsStorage = self.$.mqtt_settings_storage;
+        if ((settingsStorage != undefined) && (settingsStorage.value == null)) {
+          // Sets the default settings
+          settingsStorage.value = {
+            theme: null,
+            contrast: 'light'
+          };
+
+          settingsStorage.save();
+        }
+      },
+
+
+      // Handles the connection activate event
+      _handleActivateConnection: function(event) {
+        var self = this;
+
+        if (event.detail.isSecondary) {
+          return self._handleConnection(event);
+        }
+
+        var connectionId = ((!event.detail.isActive && event.detail.firer.data) || null);
+        if (connectionId != null) {
+          var connection = self._getConnection(connectionId);
+          if (connection != null) {
+            self._setCurrentConnection(connection);
+            self.$.mqtt_details_tabs.selected = 0; // Selects the settings tab
+          }
+          else {
+            self._showToast('Connection not found');
+          }
+
+          self._handleDeleteStaleTopics();
+        }
+        else {
+          self._handleClose();
+        }
+      },
+
+
+      // Handles the create connection event and configures the form
+      _handleCreateConnection: function(event) {
+        var self = this;
+        self.$.mqtt_details_tabs.selected = 0; // Selects the settings tab
+
+        if ((self.currentConnection != null) && !self.currentConnection.name) {
+          self._setCurrentConnection(null);
+        }
+        else {
+          self._handleConnectionReset();
+        }
+
+        self._handleDeleteStaleTopics();
+      },
+
+
+      // Handles the save connection event
+      _handleSaveConnection: function(event) {
+        var self = this;
+        if (self.connections == undefined) {
+          self.connections = [];
+        }
+
+        if (self.updating) {
+          if (self.currentConnection.debug) {
+            console.log('Updating connection: ' + self.currentConnection.host + ':' + self.currentConnection.port);
+          }
+
+          var index = self.connections.indexOf(self.currentConnection);
+          self.splice('connections', index, 1, self.currentConnection); // Replaces the updated connection
+        }
+        else {
+          if (self.currentConnection.debug) {
+            console.log('Saving new connection: ' + self.currentConnection.host + ':' + self.currentConnection.port);
+          }
+
+          self.currentConnection.id = self._computeUID();
+          self.push('connections', self.currentConnection);
+
+          if ((self.topics != null) && (self.topics.length > 0)) {
+            for (var i = 0; i < self.topics.length; i++) {
+              var topic = self.topics[i];
+              if (topic.connectionId == null) {
+                topic.connectionId = self.currentConnection.id;
+              }
+            }
+
+            // Save and reload the topic storage
+            self.$.mqtt_topic_storage.save();
+            self.$.mqtt_topic_storage.reload();
+          }
+        }
+
+        // Save and reload the connection storage
+        self.$.mqtt_connection_storage.save();
+        self.$.mqtt_connection_storage.reload();
+
+        self._showToast(self.currentConnection.name + ' was saved successfully');
+        self._handleClose();
+      },
+
+
+      // Toggles the delete conncetion confirmation dialog
+      _handleDeleteConnectionConfirm: function(event) {
+        var self = this;
+        self.$.delete_connection.toggle();
+      },
+
+
+      // Handles the delete connection event
+      _handleDeleteConnection: function(event) {
+        var self = this;
+        if (self.currentConnection != null) {
+          var connectionIndex = self.connections.indexOf(self.currentConnection);
+          self.splice('connections', connectionIndex, 1); // Removes the connection
+
+          var topics = self._getTopics(self.topics, self.currentConnection);
+          if (topics != null) {
+            for (var i = 0; i < topics.length; i++) {
+              var topic = topics[i];
+              self._delTopicCallback(topic); // Remove the registered topic callback
+
+              var topicIndex = self.topics.indexOf(topic);
+              self.splice('topics', topicIndex, 1); // Removes the topic
+            }
+
+            // Save and reload the topic storage
+            self.$.mqtt_topic_storage.save();
+            self.$.mqtt_topic_storage.reload();
+          }
+
+          if (self._isActive(self.currentConnection)) {
+            self._handleDisconnect();
+          }
+
+          self.$.mqtt_connection_storage.save();
+          self.$.mqtt_connection_storage.reload();
+
+          self._showToast(self.currentConnection.name + ' has been deleted');
+          self._handleClose();
+        }
+      },
+
+
+      // Toggles a connection
+      _handleConnection: function(event) {
+        var self = this;
+        var firer = event.detail.firer;
+        var connection = self._getConnection(firer.data);
+        if (connection != null) {
+          if (self._isActive(connection)) {
+            self._handleDisconnect();
+          }
+          else {
+            if (self.activeConnection != null) {
+              self._handleDisconnect();
+            }
+
+            self._handleConnect(connection);
+          }
+        }
+      },
+
+
+      // Attempts to connect to a given mqtt server and handle the response accordingly
+      _handleConnect: function(connection) {
+        var self = this;
+
+        if (connection != undefined) {
+          self._setActiveConnection(connection);
+          self.mqttClient = new Paho.MQTT.Client(connection.host, parseInt(connection.port), connection.clientId);
+
+          var connected = self.mqttClient.connect({
+            timeout: connection.timeout,
+            useSSL: connection.ssl,
+            userName: connection.username,
+            password: connection.password,
+            onSuccess: self._handleConnectionSuccess.bind(self),
+            onFailure: self._handleConnectionFailure.bind(self).bind(connection),
+          });
+        }
+      },
+
+
+      // Handles a successful mqtt connection
+      _handleConnectionSuccess: function() {
+        var self = this;
+        if (self.activeConnection.debug) {
+          console.log('Connection Establisted to: ' + self.activeConnection.host + ':' + self.activeConnection.port);
+        }
+
+        self._showToast('Connected to ' + self.activeConnection.name);
+
+        self.mqttClient.onConnectionLost = self._handleConnectionLost.bind(self);
+        self.mqttClient.onMessageArrived = self._handleMessageArrived.bind(self);
+
+        var topics = self._getTopics(self.topics, self.activeConnection);
+        if (topics != null) {
+          for (var i = 0; i < topics.length; i++) {
+            var topic = topics[i];
+            if (topic.autoSubscribe) {
+              self._handleTopicSubscribe(topic);
+            }
+          }
+        }
+
+        self._handleClose();
+        self.$.mqtt_header_tabs.selected = 1; // Selects the messages tab
+        self.isViewingMessages = true;
+      },
+
+
+      // Handles an mqtt connection failure and may attempt to reconnect
+      _handleConnectionFailure: function(response) {
+        var self = this;
+        if (self.activeConnection.debug) {
+          console.log('Connection Failed: ' + JSON.stringify(response));
+        }
+
+        self._showToast('Connection to ' + self.activeConnection.name + ' failed', self.activeConnection.id);
+        self._handleDisconnect();
+      },
+
+
+      // Handles a lost mqtt connection and may attemot to reconnect
+      _handleConnectionLost: function(response) {
+        var self = this;
+        if (self.activeConnection != null) {
+          if (self.activeConnection.debug) {
+            console.log('Connection Lost, ' + JSON.stringify(response));
+          }
+
+          self._showToast('Connection to ' + self.activeConnection.name + ' lost', self.activeConnection.id);
+          self._handleClose();
+        }
+      },
+
+
+      // Handles the mqtt connection retry
+      _handleConnectionRetry: function(event) {
+        var self = this;
+        var connectionId = self.retryConnection;
+        if (connectionId != null) {
+          var connection = self._getConnection(connectionId);
+          if (connection != null) {
+            if (connection.debug) {
+              console.log('Attempting reconnection in ' + connection.timeout + 'ms');
+            }
+
+            self._showToast('Attempting reconnection in ' + connection.timeout + 'ms');
+
+            setTimeout(function() {
+              self._handleConnect(connection);
+            }.bind(self), connection.timeout);
+          }
+        }
+
+        self.retryConnection = null;
+      },
+
+
+      // Disconnects from a mqtt server
+      _handleDisconnect: function() {
+        var self = this;
+        var topics = self._getTopics(self.topics, self.activeConnection);
+        if (topics != null) {
+          for (var i = 0; i < topics.length; i++) {
+            self._delTopicCallback(topics[i]);
+          }
+        }
+
+        self.$.mqtt_header_tabs.selected = 0; // Selects the connections tab
+        self.$.mqtt_details_tabs.selected = 0; // Selects the settings tab
+
+        self.splice('messages', 0, self.messages.length); // Remove all messages
+
+        if (self._isConnected()) {
+          if (self.activeConnection.debug) {
+            console.log('Disconnecting from: ' + self.activeConnection.host + ':' + self.activeConnection.port);
+          }
+
+          self._showToast('Disconnecting from ' + self.activeConnection.name + '...');
+          self.mqttClient.disconnect(); // Disconnect from the mqtt server
+
+          if (self.activeConnection.debug) {
+            console.log('Disconnected from: ' + self.activeConnection.host + ':' + self.activeConnection.port);
+          }
+
+          self._showToast('Disconnected from ' + self.activeConnection.name);
+        }
+
+        self._setActiveConnection(null);
+        self._setHasMessages(false);
+        self.isViewingMessages = false;
+      },
+
+
+      // Resets the current connection data object
+      _handleConnectionReset: function(event) {
+        var self = this;
+        self._setCurrentConnection({
+          id: null,
+          clientId: self._computeClientId(),
+          name: null,
+          host: null,
+          port: null,
+          username: '',
+          password: '',
+          timeout: 3000,
+          ssl: true,
+          debug: true
+        });
+      },
+
+
+      // Closes the details drawer
+      _handleClose: function() {
+        var self = this;
+        if (self.$.mqtt_detail_pages.selected == 2) {
+          self._handleTopicReset(event);
+          self.$.mqtt_detail_pages.selected = 1; // Opens the topic list page
+        }
+        else {
+          self._handleDeleteStaleTopics();
+          self._setCurrentConnection(null);
+          self.$.mqtt_details_tabs.selected = 0; // Selects the settings tab
+        }
+      },
+
+
+      // Handles the topic click/tap events
+      _handleActivateTopic: function(event) {
+        var self = this;
+        var topicId = ((!event.detail.isActive && event.detail.firer.data) || null);
+        if (topicId != null) {
+          var topic = self._getTopic(self.currentConnection, topicId);
+          if (topic != null) {
+            self._setCurrentTopic(topic);
+
+            if (event.detail.isSecondary) {
+              if (self._isActive(self.currentConnection)) {
+                return self._handleTopicSubscribe(topic);
+              }
+
+              self._handleTopicReset(event);
+              return;
+            }
+
+            self._handleTopicForm(event);
+          }
+          else {
+            self._showToast('Topic not found');
+          }
+        }
+      },
+
+
+      // Toggles the topic form dialog
+      _handleTopicForm: function(event) {
+        var self = this;
+        if ((self.currentTopic == null) || (self.currentTopic == null)) {
+          self._handleTopicReset(event);
+        }
+
+        self.$.mqtt_detail_pages.selected = 2; // Opens the topic form page
+      },
+
+
+      // Saves or updates a topic
+      _handleSaveTopic: function(event) {
+        var self = this;
+
+        if (self.topics == undefined) {
+          self.topics = [];
+        }
+
+        if (self.currentTopic.id != undefined) {
+          var topicIndex = self.topics.indexOf(self.currentTopic);
+          self.splice('topics', topicIndex, 1, self.currentTopic);
+        }
+        else {
+          self.currentTopic.id = self._computeUID();
+          self.currentTopic.connectionId = self.currentConnection.id;
+          self.push('topics', self.currentTopic);
+        }
+
+        if (self._isSubscribed(self.currentTopic)) {
+          self._handleTopicUnsubscribe(self._getTopic(self.currentConnection, self.currentTopic.id));
+        }
+
+        // Save and reload the topic storage
+        self.$.mqtt_topic_storage.save();
+        self.$.mqtt_topic_storage.reload();
+
+        if (self.currentConnection.debug) {
+          console.log('Saved topic: ' + self.currentTopic.name);
+        }
+
+        self._showToast('Topic saved');
+
+        if (self._isConnected(self.currentConnection) && self.currentTopic.autoSubscribe) {
+          self._handleTopicSubscribe(self.currentTopic);
+        }
+
+        self._handleTopicReset(event);
+        self.$.mqtt_detail_pages.selected = 1; // Opens the topic list page
+      },
+
+
+      // Toggles the delete topic confirmation dialog
+      _handleDeleteTopicConfirm: function() {
+        var self = this;
+        self.$.delete_topic.label = self.currentTopic.name;
+        self.$.delete_topic.toggle();
+      },
+
+
+      // Handles the delete topic event
+      _handleDeleteTopic: function(event) {
+        var self = this;
+        if (self.currentTopic != null) {
+          var index = self.topics.indexOf(self.currentTopic);
+
+          self.splice('topics', index, 1); // Removes the topic
+          self._delTopicCallback(self.currentTopic); // Remove the callback if it exists
+
+          // Save and reload the topic storage
+          self.$.mqtt_topic_storage.save();
+          self.$.mqtt_topic_storage.reload();
+
+          if (self.currentConnection.debug) {
+            console.log('Delete topic: ' + self.currentTopic.name);
+          }
+
+          self._showToast(self.currentTopic.name + ' has been deleted');
+          self._handleTopicReset(event);
+
+          self.$.mqtt_detail_pages.selected = 1; // Opens the topic list page
+        }
+      },
+
+
+       // Deletes stale topics
+       // These are topics that were created while the user was setting up a new
+       // connection but for some reason the new connection was never saved. So
+       // now we have topics that don't belong to a connection. This will take
+       // care of that.
+      _handleDeleteStaleTopics: function() {
+        var self = this;
+        var stored_topics = self.$.mqtt_topic_storage.value;
+        if (stored_topics != undefined) {
+          // We must loop through in reverse order to keep the indexes synced up
+          for (var i = stored_topics.length; i > 0; i--) {
+            if (stored_topics[(i - 1)].connectionId == null) {
+              self.splice('topics', (i - 1), 1); // Remove the stale topic
+            }
+          }
+
+          // Save and reload the topic storage
+          self.$.mqtt_topic_storage.save();
+          self.$.mqtt_topic_storage.reload();
+        }
+      },
+
+
+      // Handles a topic subscription request
+      _handleTopicSubscribe: function(topic) {
+        var self = this;
+
+        // TODO: This needs to be smarter
+        if (self._isConnected() && (topic !== null)) {
+          if (self._isSubscribed(topic)) {
+            self._handleTopicUnsubscribe(topic);
+          }
+          else {
+            self.mqttClient.subscribe(topic.name); // Subscribes to the topic
+
+            // Registers the topic callback
+            self._addTopicCallback(topic, function(_topic, data) {
+              var date = new Date();
+
+              self.push('messages', {
+                'message': data,
+                'topic': self._getTopic(self.activeConnection, topic.name),
+                'timestamp': new Date().toISOString()
+                // 'timestamp': moment(new Date()).fromNow()
+              });
+            }.bind(self));
+
+            if (self.activeConnection.debug) {
+              console.log('Subscribed to: ' + topic.name);
+            }
+
+            self._showToast('Subscribed to ' + topic.name);
+          }
+
+          // Save and reload the topic storage
+          self.$.mqtt_topic_storage.save();
+          self.$.mqtt_topic_storage.reload();
+        }
+      },
+
+
+      // Handles a topic unsubscription request
+      _handleTopicUnsubscribe: function(topic) {
+        var self = this;
+        self.mqttClient.unsubscribe(topic.name); // Sububscribes from the topic
+        self._delTopicCallback(topic); // Deletes the registered topic callback
+      },
+
+
+      // Resets the current topic data object
+      _handleTopicReset: function(event) {
+        var self = this;
+        self._setCurrentTopic({
+          connectionId: null,
+          name: null,
+          color: null,
+          autoSubscribe: true
+        });
+      },
+
+
+      // Detects when a topic message has arrived
+      _handleMessageArrived: function(response) {
+        var self = this;
+        var topic_name = response.destinationName;
+        var payload = response.payloadString;
+
+        self._setHasMessages(true);
+
+        if (self.activeConnection.debug) {
+          console.log('Message Arrived: Topic: ' + topic_name + '; Payload: ' + payload);
+        }
+
+        // Trigger any topic callbacks that may be listening for this message
+        for (var i = 0; i < self.callbacks.length; i++) {
+          if (topic_name.match(self.callbacks[i].topic.replace('#', '.+').replace('\\+', '[^/]+')) !== null) {
+            var topic = self._getTopic(self.activeConnection, topic_name);
+            if (topic != null) {
+              self.callbacks[i].function(topic, payload);
+            }
+          }
+        }
+      },
+
+
+      // Toggles the message form dialog
+      _handleMessageForm: function(event) {
+        var self = this;
+        if (self.hasTopics) {
+          self.$.message_form.toggle();
+        }
+        else {
+          self.$.zero_topics.toggle();
+        }
+      },
+
+
+      // Publishes a messages to a given topic
+      _handlePublishMessage: function(event) {
+        var self = this;
+        if (self.message && self.selectedTopic) {
+          var topic = self._getTopic(self.activeConnection, self.selectedTopic);
+          if (topic != null) {
+            if (self.activeConnection.debug) {
+              console.log('Publishing message: Topic: ' + topic.name + '; Payload: ' + self.message);
+            }
+
+            self._showToast('Message sent to ' + topic.name);
+
+            var message = new Paho.MQTT.Message(self.message);
+            message.destinationName = topic.name;
+
+            try {
+              message.qos = self.qos;
+            }
+            catch(e) {
+              message.qos = 0;
+            }
+
+            self.mqttClient.send(message);
+
+            self.message = null;
+            self.selectedTopic = null;
+            self.qos = null;
+          }
+        }
+        else if (self.activeConnection.debug) {
+          if (self.activeConnection.debug) {
+            console.log('Publish failed');
+
+            if (!self.message) {
+              console.log('The message is empty!');
+            }
+
+            if (!self.selectedTopic) {
+              console.log('You did not select a topic!');
+            }
+          }
+
+          self._showToast('Publish failed');
+        }
+      },
+
+
+      // Prevents the 'enter' key from publishng a new message
+      _handleMessageKeypress: function(event) {
+        var self = this;
+        if (event.keyCode !== 13) {
+          return;
+        }
+      },
+
+
+      // Clears the messages
+      _handleClearMessages: function(event) {
+        var self = this;
+        self.splice('messages', 0, self.messages.length);
+        self._setHasMessages(false);
+      },
+
+
+      // Toggles the header option menu
+      _handleOptionMenu: function(event) {
+        var self = this;
+        self.$.mqtt_option_menu.toggle();
+      },
+
+
+      // Toggles the settings form dialog
+      _handleSettingsForm: function(event) {
+        var self = this;
+        self.$.settings_form.toggle();
+      },
+
+
+      // Saves the settings
+      _handleSaveSettings: function(event) {
+        var self = this;
+
+        // Save and reload the settings storage
+        self.$.mqtt_settings_storage.save();
+        self.$.mqtt_settings_storage.reload();
+      },
+
+
+      // Listens to the header tab events
+      _headerTabsListener: function(event) {
+        var self = this;
+
+        if (event.target.selected == 0) {
+          self.isViewingMessages = true;
+        }
+        else {
+          self.isViewingMessages = false;
+        }
+      },
+
+
+      // Displays a toast message
+      _showToast: function(text, retryConnection) {
+        var self = this;
+        self.$.mqtt_toast.text = text;
+
+        if (retryConnection != undefined) {
+          self.retryConnection = retryConnection;
+        }
+        else {
+          self.retryConnection = null;
+        }
+
+        self.$.mqtt_toast.show();
+      },
+
+
+      // Gets a connection by id from the connection storage
+      _getConnection: function(id) {
+        var self = this;
+        var stored_connections = self.$.mqtt_connection_storage.value;
+        for (var i = 0; i < stored_connections.length; i++) {
+          if (stored_connections[i].id == id) {
+            return stored_connections[i];
+          }
+        }
+
+        return null;
+      },
+
+
+      // Gets the connection count
+      _getConnectionCount: function() {
+        var self = this;
+        if (self.connections != undefined) {
+          return self.connections.length;
+        }
+
+        return 0;
+      },
+
+
+      // Gets a list of connection topics from the topic storage
+      _getTopics: function(topics, connection) {
+        var self = this;
+        if ((connection != null) && (topics != undefined)) {
+          var _topics = [];
+
+          for (var i = 0; i < self.topics.length; i++) {
+            if (topics[i].connectionId == connection.id) {
+              _topics.push(topics[i]);
+            }
+          }
+
+          return _topics;
+        }
+
+        return null;
+      },
+
+
+      // Gets a topic connection from the topic storage
+      _getTopic: function(connection, compareStr) {
+        var self = this;
+
+        if ((connection != null) && (self.topics != undefined)) {
+          for (var i = 0; i < self.topics.length; i++) {
+            if ((self.topics[i].id == compareStr) || (self.topics[i].name == compareStr)) {
+              return self.topics[i];
+            }
+          }
+        }
+
+        return null;
+      },
+
+
+      // Gets the message count
+      _getMessageCount: function(messages) {
+        var self = this;
+
+        if (messages == undefined) {
+          messages = self.messages;
+        }
+
+        if (messages != undefined) {
+          return messages.length;
+        }
+
+        return 0;
+      },
+
+
+      // Gets the connection name
+      _computeConnectionName: function(connection) {
+        return ((connection && connection.name) ? connection.name : 'New Connection');
+      },
+
+
+      // Gets the connection host
+      _computeConnectionHost: function(connection) {
+        return (connection ? connection.host : '');
+      },
+
+
+      // Gets the connection tab label
+      _computeConnectionsTabLabel: function() {
+        var self = this;
+        var count = self._getConnectionCount();
+        var text = 'Connections';
+
+        if (count > 0) {
+          return (text + ' (' + count + ')');
+        }
+
+        return text;
+      },
+
+
+      // Gets the topic color of a given message
+      _computeTopicColor: function(message) {
+        if ((message != null) && (message.topic != null)) {
+          return message.topic.color;
+        }
+
+        return null;
+      },
+
+
+      // Gets the message tab label
+      _computeMessagesTabLabel: function(messages) {
+        var self = this;
+        var count = self._getMessageCount(messages);
+        var text = 'Messages';
+
+        if (count > 0) {
+          return (text + ' (' + count + ')');
+        }
+
+        return text;
+      },
+
+
+      // Formats the message timestamp
+      _computeMessageTimestamp: function(message) {
+        return message.timestamp;
+      },
+
+
+      // Generates a default mqtt client id
+      _computeClientId: function() {
+        var self = this;
+        return ('web_' + self._generateUID());
+      },
+
+
+      // Gets the topic name
+      _computeTopicFormLabel: function(topic) {
+        var self = this;
+        if ((topic == null) || (topic.id == null)) {
+          return 'New Topic';
+        }
+        else {
+          return topic.name;
+        }
+      },
+
+
+      // Gets the topic subscription form
+      _computeTopicSubscriptionIcon: function(topic) {
+        var self = this;
+        if (self._isConnected()) {
+          if ((self.currentConnection != null) && self._isActive(self.currentConnection)) {
+            return 'action:check-circle';
+          }
+        }
+
+        return null;
+      },
+
+
+      // Gets the topic subscription status icon color
+      _computeTopicSubscriptionColor: function(topic) {
+        var self = this;
+        if (self._isSubscribed(topic)) {
+          return 'green';
+        }
+
+        return null;
+      },
+
+
+      // Generates a list of selectable topic colors
+      _computeTopicColors: function() {
+        var colors = [{
+          id: 'red',
+          name: 'Red',
+          color: 'red-600'
+        }, {
+          id: 'pink',
+          name: 'Pink',
+          color: 'pink-600'
+        }, {
+          id: 'purple',
+          name: 'Purple',
+          color: 'purple-600'
+        }, {
+          id: 'deep-purple',
+          name: 'Deep Purple',
+          color: 'deep-purple-600'
+        }, {
+          id: 'indigo',
+          name: 'Indigo',
+          color: 'indigo-600'
+        }, {
+          id: 'blue',
+          name: 'Blue',
+          color: 'blue-600'
+        }, {
+          id: 'light-blue',
+          name: 'Light Blue',
+          color: 'light-blue-600'
+        }, {
+          id: 'cyan',
+          name: 'Cyan',
+          color: 'cyan-600'
+        }, {
+          id: 'teal',
+          name: 'Teal',
+          color: 'teal-600'
+        }, {
+          id: 'green',
+          name: 'Green',
+          color: 'green-600'
+        }, {
+          id: 'light-green',
+          name: 'Light Green',
+          color: 'light-green-600'
+        }, {
+          id: 'lime',
+          name: 'Lime',
+          color: 'lime-600'
+        }, {
+          id: 'yellow',
+          name: 'Yellow',
+          color: 'yellow-600'
+        }, {
+          id: 'amber',
+          name: 'Amber',
+          color: 'amber-600'
+        }, {
+          id: 'orange',
+          name: 'Orange',
+          color: 'orange-600'
+        }, {
+          id: 'deep-orange',
+          name: 'Deep Orange',
+          color: 'deep-orange-600'
+        }, {
+          id: 'brown',
+          name: 'Brown',
+          color: 'brown-600'
+        }, {
+          id: 'grey',
+          name: 'Grey',
+          color: 'grey-600'
+        }, {
+          id: 'blue-grey',
+          name: 'Blue Grey',
+          color: 'blue-grey-600'
+        }, {
+          id: 'black',
+          name: 'Black',
+          color: 'black'
+        }];
+
+        return colors;
+      },
+
+
+      // Gets a uid
+      _computeUID: function() {
+        var self = this;
+        return self._generateUID();
+      },
+
+
+      // Generates a uid
+      _generateUID: function() {
+        var characters = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        var lengthLimit = 25;
+        var uid = '';
+
+        while (lengthLimit--) {
+            var j = Math.floor(Math.random() * characters.length);
+            uid += characters.charAt(j);
+        }
+
+        return uid;
+      },
+
+
+      // Adds a topic callback
+      _addTopicCallback: function(topic, callback) {
+        var self = this;
+        var name = topic.name;
+
+        self.push('callbacks', {
+          id: topic.id,
+          topic: name.replace(/[\-\[\]\/\{}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&'),
+          originalTopic: name,
+          function: callback
+        });
+      },
+
+
+      // Deletes a topic callback
+      _delTopicCallback: function(topic) {
+        var self = this;
+        var index = -1;
+
+        for (var i = 0; i < self.callbacks.length; i++) {
+          if (self.callbacks[i].id === topic.id) {
+            index = i;
+          }
+        }
+
+        if (index > -1) {
+          self.splice('callbacks', index, 1);
+
+          if (self.activeConnection.debug) {
+            console.log('Unsubscribed from: ' + topic.name);
+          }
+
+          self._showToast('Unsubscribed from ' + topic.name);
+        }
+      },
+
+
+      // Checks for existing connections
+      _hasConnections: function(connections) {
+        if ((connections != null) && (connections.length > 0)) {
+          return true;
+        }
+
+        return false;
+      },
+
+
+      // Checks for existing topics
+      _hasTopics: function(topics, connection) {
+        var self = this;
+
+        var _topics = self._getTopics(topics, connection);
+        if ((_topics != null) && (_topics.length > 0)) {
+          return true;
+        }
+
+        return false;
+      },
+
+
+      // Checks if the given connection is the 'current' connection
+      _isCurrentConnection: function(connection, currentConnection) {
+        return (!!connection && !!currentConnection && (connection.id === currentConnection.id));
+      },
+
+
+      // Checks if the given connection is the 'active' connection
+      _isActiveConnection: function(connection, activeConnection) {
+        return (!!connection && !!activeConnection && (connection.id === activeConnection.id));
+      },
+
+
+      // Checks to see if the user is updating a connection
+      _isUpdating: function(connection) {
+        var self = this;
+        if ((self.currentConnection !== null) && (self.currentConnection.id !== null)) {
+            return true;
+        }
+        else {
+            return false;
+        }
+      },
+
+
+      // Checks to see if the user is updating a topic
+      _isUpdatingTopic: function(connection) {
+        var self = this;
+        if ((self.currentTopic !== null) && (self.currentTopic.id !== null) && (self.currentTopic.id !== undefined)) {
+            return true;
+        }
+        else {
+            return false;
+        }
+      },
+
+
+      // Checks if the given connection is the 'active' connection
+      _isActive: function(connection) {
+        var self = this;
+        if ((self.activeConnection != null) && (self.activeConnection.id == connection.id)) {
+          return true;
+        }
+
+        return false;
+      },
+
+
+      // Checks if the given connection is connected
+      _isConnected: function(connection) {
+        var self = this;
+        if (self.mqttClient !== undefined) {
+          return self.mqttClient.isConnected();
+        }
+
+        return false;
+      },
+
+
+      // Checks to see if the user is subscribed to a given topic
+      _isSubscribed: function(topic) {
+        var self = this;
+        for (var i = 0; i < self.callbacks.length; i++) {
+          var id = self.callbacks[i].id;
+          if ((id != null) && (topic.id == id)) {
+            return true;
+          }
+        }
+
+        return false;
+      },
+
+
+      _doesConnectionNameExist: function(name, connection) {
+        var self = this;
+        if (self.connections) {
+          for (var i = 0; i < self.connections.length; i++) {
+            var _connection = self.connections[i];
+            if ((_connection.name == name) && (_connection.id != connection.id)) {
+              return true;
+            }
+          }
+        }
+
+        return false;
+      }
+    });
+  </script>
+</dom-module>

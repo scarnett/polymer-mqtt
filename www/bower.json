@@ -1,0 +1,42 @@
+{
+  "name": "polymer-mqtt-client",
+  "directory": "resources/bower/components/",
+  "keywords": [
+    "polymer",
+    "material",
+    "expandjs",
+    "web-component",
+    "web-components",
+    "mqtt"
+  ],
+  "dependencies": {
+    "polymer": "Polymer/polymer#^1.0.0",
+    "paper-toast": "PolymerElements/paper-toast#~1.0.0",
+    "paper-input": "PolymerElements/paper-input#~1.0.10",
+    "paper-checkbox": "PolymerElements/paper-checkbox#~1.0.6",
+    "paper-radio-group": "PolymerElements/paper-radio-group#~1.0.4",
+    "paper-menu": "PolymerElements/paper-menu#~1.0.1",
+    "paper-item": "PolymerElements/paper-item#~1.0.2",
+    "iron-localstorage": "PolymerElements/iron-localstorage#~1.0.4",
+    "expandjs": "ExpandJS/expandjs#~0.9.4",
+    "mat-elements": "ExpandJS/mat-elements#~0.9.4",
+    "xp-elements": "ExpandJS/xp-elements#~0.9.4",
+    "moment": "~2.10.6",
+    "time-elements": "~0.4.0",
+    "paper-radio-button": "PolymerElements/paper-radio-button#~1.0.6"
+  },
+  "version": "1.0.0",
+  "authors": [
+    "scott carnett <scott.carnett@gmail.com>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "resources/bower/components/",
+    "build",
+    "test",
+    "tests"
+  ]
+}
