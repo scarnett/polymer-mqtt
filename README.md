@@ -1,6 +1,6 @@
 # polymer-mqtt
 
-polymer-mqtt - an mqtt client using polymer and expandjs
+polymer-mqtt - an mqtt client using [polymer](https://www.polymer-project.org/1.0/) and [expandjs](http://expandjs.com/)
 
 ## Demo
 
